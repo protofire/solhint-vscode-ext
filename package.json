@@ -1,0 +1,88 @@
+{
+  "name": "solhint-vscode-ext",
+  "displayName": "Solhint VSCode Ext",
+  "description": "VS Code extension to run Solhint from the workspace with support for custom plugins.",
+  "version": "0.0.1",
+  "publisher": "dbale-altoros",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:solidity",
+    "workspaceContains:**/.solhint.json",
+    "workspaceContains:**/.solhintignore"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+        "commands": [
+      {
+        "command": "solhintVscodeExt.hello",
+        "title": "Solhint VSCode Ext: Hello"
+      }
+    ],
+    "configuration": {
+      "title": "Solhint VSCode Ext",
+      "properties": {
+        "solhintVscodeExt.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Solhint diagnostics."
+        },
+        "solhintVscodeExt.runOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run Solhint when a Solidity file is opened."
+        },
+        "solhintVscodeExt.runOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run Solhint when a Solidity file is saved."
+        },
+        "solhintVscodeExt.pluginPaths": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional paths used to resolve Solhint plugins."
+        },
+        "solhintVscodeExt.solhintModule": {
+          "type": "string",
+          "default": "solhint",
+          "description": "Module name or path used to resolve Solhint from the workspace."
+        },
+        "solhintVscodeExt.trace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable verbose logging in the output channel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js",
+    "watch": "esbuild src/extension.ts --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --watch",
+    "check": "tsc --noEmit",
+    "compile": "npm run check && npm run build"
+  },
+  "keywords": [
+    "solhint",
+    "solidity",
+    "vscode",
+    "extension",
+    "linter"
+  ],
+  "devDependencies": {
+    "@types/node": "^25.3.5",
+    "@types/vscode": "^1.109.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.9.3"
+  }
+}
