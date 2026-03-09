@@ -23,32 +23,15 @@ function readSolhintConfig(workspaceRoot: string): Record<string, unknown> {
 
 function resolveSolhintModule(resolutionPaths: string[], moduleName: string): string {
   return require.resolve(moduleName, {
-    paths: resolutionPaths
+    paths: resolutionPaths,
   });
 }
 
 function isReporterShape(value: unknown): value is SolhintReporterShape {
-  return Boolean(
-    value &&
-      typeof value === "object" &&
-      Array.isArray((value as SolhintReporterShape).reports)
-  );
+  return Boolean(value && typeof value === "object" && Array.isArray((value as SolhintReporterShape).reports));
 }
 
-function addPluginResolutionPaths(pathsToAdd: string[]): void {
-  const nodeModulePaths = (module as NodeModule).paths;
-
-  for (const pluginPath of pathsToAdd) {
-    if (!nodeModulePaths.includes(pluginPath)) {
-      nodeModulePaths.unshift(pluginPath);
-    }
-  }
-}
-
-export function runSolhint(
-  document: vscode.TextDocument,
-  outputChannel?: vscode.OutputChannel
-): SolhintProblem[] {
+export function runSolhint(document: vscode.TextDocument, outputChannel?: vscode.OutputChannel): SolhintProblem[] {
   const workspaceRoot = getWorkspaceRoot(document);
 
   if (!workspaceRoot) {
@@ -57,11 +40,7 @@ export function runSolhint(
 
   const settings = getSettings();
   const pluginPaths = normalizePluginPaths(workspaceRoot, settings.pluginPaths);
-  const resolutionPaths = [
-    workspaceRoot,
-    path.join(workspaceRoot, "node_modules"),
-    ...pluginPaths
-  ];
+  const resolutionPaths = [workspaceRoot, path.join(workspaceRoot, "node_modules"), ...pluginPaths];
 
   let rawResult: unknown;
   const previousCwd = process.cwd();
@@ -69,23 +48,17 @@ export function runSolhint(
   try {
     process.chdir(workspaceRoot);
 
-    addPluginResolutionPaths(pluginPaths);
-
-    const solhintPath = resolveSolhintModule(
-      resolutionPaths,
-      settings.solhintModule
-    );
+    const solhintPath = resolveSolhintModule(resolutionPaths, settings.solhintModule);
     const solhintModule = require(solhintPath) as SolhintModuleShape;
     const config = readSolhintConfig(workspaceRoot);
+    if (pluginPaths.length > 0) {
+      config.pluginPaths = pluginPaths;
+    }
 
     if (settings.trace) {
-      outputChannel?.appendLine(`[solhint-vscode-ext] workspaceRoot: ${workspaceRoot}`);
       outputChannel?.appendLine(`[solhint-vscode-ext] solhint resolved: ${solhintPath}`);
       outputChannel?.appendLine(`[solhint-vscode-ext] lint file: ${document.uri.fsPath}`);
       outputChannel?.appendLine(`[solhint-vscode-ext] pluginPaths: ${JSON.stringify(pluginPaths)}`);
-      outputChannel?.appendLine(`[solhint-vscode-ext] resolutionPaths: ${JSON.stringify(resolutionPaths)}`);
-      outputChannel?.appendLine(`[solhint-vscode-ext] cwd before lint: ${previousCwd}`);
-      outputChannel?.appendLine(`[solhint-vscode-ext] cwd target: ${workspaceRoot}`);
     }
 
     const code = document.getText();
@@ -97,7 +70,7 @@ export function runSolhint(
       rawResult = solhintModule.processStr(code, config, fileName);
     } else {
       throw new Error("Could not find a compatible Solhint API.");
-    }
+    }    
   } finally {
     process.chdir(previousCwd);
   }
