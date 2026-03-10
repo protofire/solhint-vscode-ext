@@ -70,7 +70,8 @@
     "compile": "npm run check && npm run build",
     "prepublishOnly": "npm run compile",
     "package": "npm run compile && vsce package",
-    "publish": "npm run compile && vsce publish"
+    "publish": "npm run compile && vsce publish",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/**/*.test.js"
   },
   "keywords": [
     "solidity",
