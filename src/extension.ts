@@ -7,10 +7,7 @@ let outputChannel: vscode.OutputChannel | undefined;
 let diagnosticCollection: vscode.DiagnosticCollection | undefined;
 
 function isSolidityDocument(document: vscode.TextDocument): boolean {
-  return (
-    document.languageId === "solidity" ||
-    document.fileName.toLowerCase().endsWith(".sol")
-  );
+  return document.languageId === "solidity" || document.fileName.toLowerCase().endsWith(".sol");
 }
 
 function trace(message: string): void {
@@ -44,8 +41,7 @@ function lintDocument(document: vscode.TextDocument): void {
   } catch (error) {
     diagnosticCollection?.delete(document.uri);
 
-    const message =
-      error instanceof Error ? error.message : "Unknown Solhint execution error";
+    const message = error instanceof Error ? error.message : "Unknown Solhint execution error";
 
     outputChannel?.appendLine(`[solhint-vscode-ext] error: ${message}`);
     vscode.window.showWarningMessage(`Solhint VSCode Ext: ${message}`);
@@ -56,23 +52,13 @@ export function activate(context: vscode.ExtensionContext): void {
   outputChannel = vscode.window.createOutputChannel("Solhint VSCode Ext");
   diagnosticCollection = vscode.languages.createDiagnosticCollection("solhint-vscode-ext");
 
-  outputChannel.appendLine("[solhint-vscode-ext] Extension activated");
-
   context.subscriptions.push(outputChannel);
   context.subscriptions.push(diagnosticCollection);
 
-  const disposable = vscode.commands.registerCommand(
-    "solhintVscodeExt.hello",
-    () => {
-      vscode.window.showInformationMessage("Solhint VSCode Ext is active");
-      outputChannel?.appendLine("[solhint-vscode-ext] hello command executed");
-    }
-  );
-
-  context.subscriptions.push(disposable);
+  const settings = getSettings();
 
   const activeEditor = vscode.window.activeTextEditor;
-  if (activeEditor && getSettings().runOnOpen) {
+  if (activeEditor && settings.runOnOpen) {
     lintDocument(activeEditor.document);
   }
 
@@ -82,27 +68,27 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
-      if (getSettings().runOnOpen) {
+      if (settings.runOnOpen) {
         lintDocument(editor.document);
       }
-    })
+    }),
   );
 
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document) => {
-      if (getSettings().runOnSave) {
-        lintDocument(document);
+      const settings = getSettings();
+
+      if (!settings.runOnSave || !isSolidityDocument(document)) {
+        return;
       }
-    })
+
+      lintDocument(document);
+    }),
   );
 
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument((document) => {
       diagnosticCollection?.delete(document.uri);
-    })
+    }),
   );
-}
-
-export function deactivate(): void {
-  outputChannel?.appendLine("[solhint-vscode-ext] Extension deactivated");
 }

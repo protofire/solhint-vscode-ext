@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist-test",
+    "types": ["node", "vscode"],
+    "sourceMap": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node"
+  },
+  "include": ["src", "test"]
+}
